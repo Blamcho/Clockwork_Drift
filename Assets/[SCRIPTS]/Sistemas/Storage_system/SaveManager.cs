@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [Serializable]
 public class RaceResult
@@ -22,6 +23,8 @@ public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
     private string filePath;
+    [Header("Server Config")]
+    [SerializeField] private string saveScoreUrl = "https://fictionsearch.net/api/save_score.php";
 
     private void Awake()
     {
@@ -61,6 +64,17 @@ public class SaveManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("Failed to save results: " + e);
+        }
+        
+        //DB Stuff
+        int usuarioId = PlayerPrefs.GetInt("UsuarioID", 0);
+        if (usuarioId != 0)
+        {
+            StartCoroutine(SendResultToServer(usuarioId, result));
+        }
+        else
+        {
+            Debug.LogWarning("No se encontró UsuarioID en PlayerPrefs. No se envió score a la BD.");
         }
     }
 
@@ -103,4 +117,35 @@ public class SaveManager : MonoBehaviour
             Debug.LogError("Failed to clear results: " + e);
         }
     }
+    private System.Collections.IEnumerator SendResultToServer(int usuarioId, RaceResult result)
+    {
+        if (string.IsNullOrEmpty(saveScoreUrl))
+        {
+            Debug.LogError("SaveManager: saveScoreUrl no está configurada.");
+            yield break;
+        }
+
+        WWWForm form = new WWWForm();
+        form.AddField("usuario_id", usuarioId);
+        form.AddField("track_name", result.trackName);
+        form.AddField("time", result.time.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        form.AddField("score", result.score);
+        form.AddField("date", result.date);
+
+        using (UnityWebRequest www = UnityWebRequest.Post(saveScoreUrl, form))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.ConnectionError ||
+                www.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error enviando score a la BD: " + www.error);
+            }
+            else
+            {
+                Debug.Log("Score enviado a la BD. Respuesta: " + www.downloadHandler.text);
+            }
+        }
+    }
+
 }

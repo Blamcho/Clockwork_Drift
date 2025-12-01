@@ -68,7 +68,10 @@ public class LeaderboardRegisterUI : MonoBehaviour
                 {
                     feedbackText.text = "Registro exitoso. ¡Bienvenida/o, " + playerName + "!";
                     // Aquí podrías guardar el usuario_id para usarlo después:
-                    int usuarioId = response.usuario_id;
+                    PlayerPrefs.SetInt("UsuarioID", response.usuario_id);
+                    PlayerPrefs.Save();
+                    
+                    Debug.Log("Usuario ID guardado en PlayerPrefs: " + PlayerPrefs.GetInt("UsuarioID"));
                     
                     yield return new WaitForSeconds(2.5f);
                     
