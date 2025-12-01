@@ -18,6 +18,8 @@ public class UIController : MonoBehaviour
     [Header("Settings Menu from Pause Panel GObject")]
     [SerializeField] private GameObject settingsMenuFromPause = default;
     [SerializeField] private GameObject finishedtrackPanel = default;
+    [Header(" DB Leaderboard Register Panel")]
+    [SerializeField] private GameObject leaderboardRegisterPanel; // Panel para registrar nombre en BD
 
     private void Awake()
     {
@@ -51,6 +53,17 @@ public class UIController : MonoBehaviour
             HandleGameStateChanged(GameStateManager.Instance.CurrentGameState);
         }
     }
+    
+    public void ShowLeaderboardRegisterPanel()
+    {
+        // Mostrar la pantalla de registro
+        if (leaderboardRegisterPanel != null)
+            leaderboardRegisterPanel.SetActive(true);
+
+        // Opcional: ocultar el menú principal mientras registras
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+    }
 
     //TODO: Handling of States UI Controller va primero
     
@@ -73,6 +86,9 @@ public class UIController : MonoBehaviour
         {
             SFXController.Instance.PlayPauseSFX();
         }
+        
+        if (!inMenu && leaderboardRegisterPanel != null)
+            leaderboardRegisterPanel.SetActive(false);
         
         bool uiActive = inMenu || paused;
         Cursor.visible = uiActive;
